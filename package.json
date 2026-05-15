@@ -1,0 +1,26 @@
+{
+  "name": "xbtp",
+  "version": "1.0.0",
+  "description": "Secure management of SAP CLI credentials (cf, btp)",
+  "bin": {
+    "xbtp": "./bin/xbtp.js"
+  },
+  "main": "src/cli.js",
+  "scripts": {
+    "start": "node bin/xbtp.js",
+    "postinstall": "node scripts/check-pty.js"
+  },
+  "keywords": ["sap", "btp", "cf", "cloud-foundry", "cli"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^12.1.0",
+    "prompts": "^2.4.2"
+  },
+  "optionalDependencies": {
+    "node-pty": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
