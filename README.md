@@ -1,8 +1,27 @@
 # xbtp
 
+[![npm version](https://img.shields.io/npm/v/@moonraker46/xbtp?color=cb3837&label=npm&logo=npm)](https://www.npmjs.com/package/@moonraker46/xbtp)
+[![npm downloads](https://img.shields.io/npm/dm/@moonraker46/xbtp?color=8d8d8d&logo=npm&label=downloads)](https://www.npmjs.com/package/@moonraker46/xbtp)
+[![Node.js](https://img.shields.io/node/v/@moonraker46/xbtp?color=339933&logo=node.js)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/npm/l/@moonraker46/xbtp?color=blue)](LICENSE)
+
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)](#platform-support)
+[![Built for SAP BTP](https://img.shields.io/badge/built%20for-SAP%20BTP-0070f2?logo=sap)](https://www.sap.com/products/technology-platform.html)
+[![GitHub stars](https://img.shields.io/github/stars/moonraker46/xbtp?logo=github&style=flat)](https://github.com/moonraker46/xbtp/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/moonraker46/xbtp?logo=github)](https://github.com/moonraker46/xbtp/issues)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/moonraker46/xbtp/pulls)
+
 Secure management of multiple SAP CLI credentials (`cf`, `btp`) from the command line.
 
 Profiles are stored encrypted (AES-256-GCM). On macOS the encryption key lives in the system Keychain; on Linux/Windows a master password is used as a fallback. You can also store one default username/password pair per CLI and have profiles inherit from it.
+
+## Install
+
+```bash
+npm install -g @moonraker46/xbtp
+```
+
+Then run `xbtp --help` to see all commands. The package is published on npmjs at [`@moonraker46/xbtp`](https://www.npmjs.com/package/@moonraker46/xbtp); the CLI binary is `xbtp` (unscoped).
 
 ## Requirements
 
@@ -20,13 +39,45 @@ Profiles are stored encrypted (AES-256-GCM). On macOS the encryption key lives i
 
 Note: on Windows the encrypted store is protected by your Windows user profile (NTFS ACLs) plus the AES master-password layer. POSIX `chmod 600` is a no-op there.
 
-## Installation
+## Installation details
+
+### From npm (recommended)
 
 ```bash
+npm install -g @moonraker46/xbtp
+```
+
+Verify:
+
+```bash
+xbtp --version
+xbtp --help
+```
+
+To upgrade later:
+
+```bash
+npm update -g @moonraker46/xbtp
+```
+
+To uninstall:
+
+```bash
+npm uninstall -g @moonraker46/xbtp
+```
+
+### From source
+
+```bash
+git clone https://github.com/moonraker46/xbtp.git
 cd xbtp
 npm install
-npm link   # makes 'xbtp' globally available
+npm link            # makes 'xbtp' globally available from the cloned tree
 ```
+
+### About `node-pty`
+
+The optional dependency `node-pty` is installed automatically. A `postinstall` hook verifies the prebuilt binary works on the local Node version and rebuilds from source if not. If `node-pty` is unavailable for any reason, xbtp falls back to `arg` login mode — the tool is never blocked by it.
 
 ## Quick start
 

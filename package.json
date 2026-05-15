@@ -1,18 +1,51 @@
 {
-  "name": "xbtp",
-  "version": "1.0.0",
-  "description": "Secure management of SAP CLI credentials (cf, btp)",
+  "name": "@moonraker46/xbtp",
+  "version": "1.0.1",
+  "description": "Secure CLI for managing multiple SAP CLI credentials (cf, btp). Encrypted profile store (AES-256-GCM + macOS Keychain), on-the-fly org/space discovery, PTY-based login.",
+  "keywords": [
+    "sap",
+    "btp",
+    "cf",
+    "cloud-foundry",
+    "sap-btp",
+    "cli",
+    "credentials",
+    "profile-manager",
+    "keychain",
+    "login",
+    "secrets"
+  ],
+  "homepage": "https://github.com/moonraker46/xbtp#readme",
+  "bugs": {
+    "url": "https://github.com/moonraker46/xbtp/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moonraker46/xbtp.git"
+  },
+  "license": "MIT",
+  "author": "Ulrich Waldmann <moonraker@magenta.de>",
   "bin": {
-    "xbtp": "./bin/xbtp.js"
+    "xbtp": "bin/xbtp.js"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "main": "src/cli.js",
+  "files": [
+    "bin/",
+    "src/",
+    "scripts/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "start": "node bin/xbtp.js",
-    "postinstall": "node scripts/check-pty.js"
+    "test": "node test/smoke.js",
+    "postinstall": "node scripts/check-pty.js",
+    "prepublishOnly": "npm test"
   },
-  "keywords": ["sap", "btp", "cf", "cloud-foundry", "cli"],
-  "author": "",
-  "license": "MIT",
   "dependencies": {
     "commander": "^12.1.0",
     "prompts": "^2.4.2"
@@ -22,5 +55,10 @@
   },
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ]
 }
