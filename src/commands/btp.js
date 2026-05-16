@@ -12,8 +12,10 @@ async function add(name) {
       return;
     }
   }
-  const data = await askBtpProfile(profiles.btp[name] || {}, profiles.defaults?.btp);
+  const data = await askBtpProfile(profiles.btp[name] || {}, profiles.defaults?.btp, profiles.lastUsed?.btpUrl);
   profiles.btp[name] = data;
+  profiles.lastUsed = profiles.lastUsed || {};
+  profiles.lastUsed.btpUrl = data.url;
   await saveProfiles(profiles);
   const usingDefaults = !data.username || !data.password;
   console.log(`OK: BTP profile '${name}' saved${usingDefaults ? ' (using default credentials)' : ''}.`);

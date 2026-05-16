@@ -64,7 +64,7 @@ async function promptMasterPassword(isNew) {
 }
 
 function emptyProfiles() {
-  return { defaults: {}, cf: {}, btp: {} };
+  return { defaults: {}, lastUsed: {}, cf: {}, btp: {} };
 }
 
 function resolveProfile(profile, defaults) {
@@ -79,17 +79,20 @@ function profileUsesDefaults(profile) {
   return !profile.username || !profile.password;
 }
 
+function chooseBackend() {
+  const forced = (process.env.XBTP_BACKEND || '').toLowerCase();
+  if (forced === 'password') return 'password';
+  if (forced === 'keychain') return 'keychain';
+  return keychain.isMac() ? 'keychain' : 'password';
+}
+
 async function loadProfiles() {
   ensureDir();
   const meta = readMeta();
   const storeExists = fs.existsSync(STORE_FILE);
 
   if (!storeExists) {
-    if (keychain.isMac()) {
-      writeMeta({ backend: 'keychain' });
-    } else {
-      writeMeta({ backend: 'password' });
-    }
+    writeMeta({ backend: chooseBackend() });
     return emptyProfiles();
   }
 
@@ -111,6 +114,7 @@ async function loadProfiles() {
     }
   }
   if (!raw.defaults) raw.defaults = {};
+  if (!raw.lastUsed) raw.lastUsed = {};
   if (!raw.cf) raw.cf = {};
   if (!raw.btp) raw.btp = {};
   return raw;
@@ -122,7 +126,7 @@ async function saveProfiles(profiles) {
   const json = JSON.stringify(profiles, null, 2);
 
   if (!meta.backend) {
-    meta.backend = keychain.isMac() ? 'keychain' : 'password';
+    meta.backend = chooseBackend();
     writeMeta(meta);
   }
 

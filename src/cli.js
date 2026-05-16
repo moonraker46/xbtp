@@ -43,6 +43,9 @@ Examples:
   $ xbtp env dev                Log in to both btp AND cf using profile "dev"
   $ xbtp ls                     List all profiles (defaults, cf, btp, env shortcuts)
 
+  $ xbtp export backup.json     Export all profiles to JSON (plain text!)
+  $ xbtp import backup.json     Merge profiles from JSON into the local store
+
 Storage:
   Profile store:    ~/.config/xbtp/profiles.enc   (chmod 0600)
   Backend marker:   ~/.config/xbtp/meta.json
@@ -53,6 +56,7 @@ Environment variables:
   XBTP_LOGIN_MODE        Force login mode: "pty" or "arg" (default: auto).
   XBTP_CONFIG_DIR        Override the config directory location.
   XBTP_SKIP_CF_DISCOVERY Set to "1" to disable org/space auto-discovery on add.
+  XBTP_BACKEND           Force storage backend: "keychain" or "password".
 
 For per-command help, run:
   $ xbtp defaults --help
@@ -217,6 +221,51 @@ Examples:
   .action(async (name) => {
     const env = require('./commands/env');
     await env.login(name);
+  });
+
+program
+  .command('export [file]')
+  .summary('Export all profiles + defaults to a JSON file')
+  .description(
+    'Write all stored profiles (cf, btp, defaults, lastUsed) to a JSON file.\n\n' +
+    'If no file is given (or "-"), the JSON is written to STDOUT.\n\n' +
+    'WARNING: the export contains usernames and passwords in PLAIN TEXT.\n' +
+    'Encrypt or delete the file after transferring it.',
+  )
+  .addHelpText(
+    'after',
+    `
+Examples:
+  $ xbtp export                            Write JSON to stdout
+  $ xbtp export ./xbtp-backup.json         Write JSON to file (chmod 0600)
+  $ xbtp export - | gpg -c > xbtp.gpg      Pipe to gpg for encrypted backup
+`,
+  )
+  .action(async (file) => {
+    const { exportProfiles } = require('./commands/export');
+    await exportProfiles(file);
+  });
+
+program
+  .command('import <file>')
+  .summary('Import profiles from a JSON file')
+  .description(
+    'Merge profiles from an xbtp export JSON file into the local store.\n\n' +
+    'Existing profiles with the same name prompt for overwrite confirmation.\n' +
+    'Default credentials (defaults) prompt for replacement if any are set.\n' +
+    'lastUsed values are filled in only where the local store has none.',
+  )
+  .addHelpText(
+    'after',
+    `
+Examples:
+  $ xbtp import ./xbtp-backup.json
+  $ gpg -d xbtp.gpg | xbtp import /dev/stdin
+`,
+  )
+  .action(async (file) => {
+    const { importProfiles } = require('./commands/import');
+    await importProfiles(file);
   });
 
 program

@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 1.1.0 - 2026-05-17
+
+### Added
+- `xbtp export [file]` — write all profiles + defaults + lastUsed to a JSON file (chmod 0600) or STDOUT. Plain-text passwords, intended for backups and migration.
+- `xbtp import <file>` — merge profiles from a JSON export back into the local store. Per-profile overwrite confirmation, defaults replace prompt, non-destructive `lastUsed` merge.
+- URL memory: the CF API endpoint and BTP CLI URL you enter for the first profile are remembered and suggested as defaults for subsequent profiles (stored in encrypted `lastUsed` section).
+- `XBTP_BACKEND` environment variable to force the storage backend (`keychain` or `password`).
+
+### Changed
+- Smoke test now runs in an isolated `XBTP_CONFIG_DIR` with `XBTP_BACKEND=password`, so `npm test` no longer touches the production profile store or Keychain entry.
+
+### Fixed
+- Smoke test cleanup is also triggered on test failure.
+
 ## 1.0.1 - 2026-05-15
 
 ### Changed

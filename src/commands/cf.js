@@ -87,7 +87,7 @@ async function add(name) {
     }
   }
 
-  const basics = await askCfBasics(existing || {}, profiles.defaults?.cf);
+  const basics = await askCfBasics(existing || {}, profiles.defaults?.cf, profiles.lastUsed?.cfApi);
   const { org, space } = await pickOrgSpace(basics, existing, profiles.defaults);
 
   const data = {
@@ -100,6 +100,8 @@ async function add(name) {
   if (basics.password) data.password = basics.password;
 
   profiles.cf[name] = data;
+  profiles.lastUsed = profiles.lastUsed || {};
+  profiles.lastUsed.cfApi = basics.api;
   await saveProfiles(profiles);
   const usingDefaults = !data.username || !data.password;
   console.log(`OK: CF profile '${name}' saved${usingDefaults ? ' (using default credentials)' : ''}.`);

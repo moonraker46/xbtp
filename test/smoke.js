@@ -1,17 +1,24 @@
+const path = require('node:path');
+const os = require('node:os');
+const fs = require('node:fs');
+
+const TEST_CONFIG_DIR = path.join(
+  os.tmpdir(),
+  `xbtp-smoke-${process.pid}-${Date.now()}`,
+);
+
+process.env.XBTP_CONFIG_DIR = TEST_CONFIG_DIR;
+process.env.XBTP_BACKEND = 'password';
+process.env.XBTP_MASTER_PASSWORD = 'smoke-test-master-password';
 process.env.XBTP_SKIP_CF_DISCOVERY = '1';
 
 const prompts = require('prompts');
 const assert = require('node:assert');
-const fs = require('node:fs');
-const path = require('node:path');
-const os = require('node:os');
-const { spawnSync } = require('node:child_process');
-
-const CONFIG_DIR = path.join(os.homedir(), '.config', 'xbtp');
 
 function reset() {
-  if (fs.existsSync(CONFIG_DIR)) fs.rmSync(CONFIG_DIR, { recursive: true, force: true });
-  spawnSync('security', ['delete-generic-password', '-s', 'xbtp', '-a', 'master-key'], { stdio: 'ignore' });
+  if (fs.existsSync(TEST_CONFIG_DIR)) {
+    fs.rmSync(TEST_CONFIG_DIR, { recursive: true, force: true });
+  }
 }
 
 async function main() {
@@ -37,23 +44,23 @@ async function main() {
 
   console.log('\n--- 3) add cf "dev" inheriting defaults (manual org/space, discovery skipped) ---');
   prompts.inject([
-    'https://api.cf.eu10.hana.ondemand.com',  // api
-    false,                                     // skipSslValidation
-    true,                                      // useGlobalCreds
-    'my-org',                                  // org (manual)
-    'dev',                                     // space (manual, optional)
+    'https://api.cf.eu10.hana.ondemand.com',
+    false,
+    true,
+    'my-org',
+    'dev',
   ]);
   await cf.add('dev');
 
   console.log('\n--- 4) add cf "prod" with own credentials ---');
   prompts.inject([
     'https://api.cf.us10.hana.ondemand.com',
-    false,                                     // ssl
-    false,                                     // useGlobalCreds = no
+    false,
+    false,
     'prod-user@example.com',
     'prodPw',
-    'prod-org',                                // org manual
-    'prod',                                    // space manual
+    'prod-org',
+    'prod',
   ]);
   await cf.add('prod');
 
@@ -84,17 +91,15 @@ async function main() {
 
   assert.strictEqual(data.cf.dev.username, undefined);
   assert.strictEqual(data.cf.dev.password, undefined);
-  console.log('OK: profile resolution works correctly');
+  assert.strictEqual(data.lastUsed.cfApi, 'https://api.cf.us10.hana.ondemand.com');
+  assert.strictEqual(data.lastUsed.btpUrl, 'https://cli.btp.cloud.sap');
+  console.log('OK: profile resolution + lastUsed work correctly');
 
   console.log('\n--- 7) ls all ---');
   await list.listAll();
 
   console.log('\n--- 8) change defaults, verify inheriting profile picks them up ---');
-  prompts.inject([
-    true,
-    'new-cf@example.com',
-    'newCfPw',
-  ]);
+  prompts.inject([true, 'new-cf@example.com', 'newCfPw']);
   await defaults.set('cf');
 
   const data2 = await loadProfiles();
@@ -111,7 +116,45 @@ async function main() {
   assert.ok(data3.defaults.cf);
   console.log('OK: partial removal works');
 
-  console.log('\n--- 10) cleanup ---');
+  console.log('\n--- 10) export profiles to JSON ---');
+  const exportFile = path.join(os.tmpdir(), `xbtp-smoke-export-${process.pid}.json`);
+  const { exportProfiles } = require('../src/commands/export');
+  await exportProfiles(exportFile);
+  assert.ok(fs.existsSync(exportFile));
+  const exported = JSON.parse(fs.readFileSync(exportFile, 'utf8'));
+  assert.strictEqual(exported.xbtpExport.version, '1.0');
+  assert.ok(exported.cf.dev);
+  assert.ok(exported.cf.prod);
+  assert.strictEqual(exported.cf.prod.username, 'prod-user@example.com');
+  assert.ok(exported.defaults.cf);
+  assert.strictEqual(exported.lastUsed.cfApi, 'https://api.cf.us10.hana.ondemand.com');
+  console.log('OK: export produced valid JSON with all profiles');
+
+  console.log('\n--- 11) wipe and re-import ---');
+  prompts.inject([true]);
+  await cf.remove('dev');
+  prompts.inject([true]);
+  await cf.remove('prod');
+  prompts.inject([true]);
+  await btp.remove('dev');
+  prompts.inject([true]);
+  await defaults.remove('both');
+
+  const { importProfiles } = require('../src/commands/import');
+  await importProfiles(exportFile);
+
+  const after = await loadProfiles();
+  assert.ok(after.cf.dev);
+  assert.ok(after.cf.prod);
+  assert.ok(after.btp.dev);
+  assert.ok(after.defaults.cf);
+  assert.strictEqual(after.cf.prod.username, 'prod-user@example.com');
+  assert.strictEqual(after.lastUsed.cfApi, 'https://api.cf.us10.hana.ondemand.com');
+  console.log('OK: import restored all profiles');
+
+  fs.unlinkSync(exportFile);
+
+  console.log('\n--- 12) cleanup ---');
   prompts.inject([true]);
   await cf.remove('dev');
   prompts.inject([true]);
@@ -130,5 +173,6 @@ async function main() {
 
 main().catch((err) => {
   console.error('SMOKE TEST FAILED:', err);
+  reset();
   process.exit(1);
 });

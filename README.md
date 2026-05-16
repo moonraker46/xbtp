@@ -145,6 +145,41 @@ xbtp cf rm dev
 xbtp btp rm dev
 ```
 
+### URL memory
+
+The CF API endpoint you enter for the *first* profile is remembered and offered as the default when you create the *next* CF profile. Same for the BTP CLI URL. So you only type your landscape's API URL once.
+
+If you want a different URL for a particular profile, just overwrite the suggestion.
+
+## Export / Import
+
+For backups, sharing between machines, or migrating to a new laptop:
+
+```bash
+xbtp export backup.json              # write all profiles + defaults to JSON
+xbtp export                          # write JSON to STDOUT
+xbtp export - | gpg -c > xbtp.gpg    # encrypted backup via gpg
+
+xbtp import backup.json              # merge profiles into the local store
+gpg -d xbtp.gpg | xbtp import /dev/stdin
+```
+
+The export file contains usernames **and passwords in plain text** so you can move credentials between systems. Treat the file like a secret — encrypt it, then delete it after transfer.
+
+Import merges into the existing store: name collisions prompt for overwrite confirmation per profile, default credentials prompt once if any are already set, and `lastUsed` URLs are kept where the local store already has them.
+
+JSON format:
+
+```json
+{
+  "xbtpExport": { "version": "1.0", "exportedAt": "..." },
+  "defaults":   { "cf": { "username": "...", "password": "..." }, "btp": { ... } },
+  "lastUsed":   { "cfApi": "...", "btpUrl": "..." },
+  "cf":         { "dev": { "api": "...", "org": "...", ... } },
+  "btp":        { "dev": { "url": "...", "subdomain": "...", ... } }
+}
+```
+
 ## Security
 
 - Profile store lives at `~/.config/xbtp/profiles.enc` with `chmod 600`.
@@ -200,6 +235,8 @@ xbtp defaults --help
 xbtp cf --help
 xbtp btp --help
 xbtp env --help
+xbtp export --help
+xbtp import --help
 ```
 
 ## Notes

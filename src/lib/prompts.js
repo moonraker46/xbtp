@@ -32,7 +32,7 @@ async function askCredentials(label, defaults = {}) {
   return answers;
 }
 
-async function askCfBasics(defaults = {}, globalDefaults = null) {
+async function askCfBasics(defaults = {}, globalDefaults = null, lastApi = '') {
   const hasGlobal = !!(globalDefaults && globalDefaults.username && globalDefaults.password);
   const profileHasOwn = !!(defaults.username && defaults.password);
   const list = [];
@@ -41,7 +41,7 @@ async function askCfBasics(defaults = {}, globalDefaults = null) {
     type: 'text',
     name: 'api',
     message: 'CF API endpoint',
-    initial: defaults.api || 'https://api.cf.eu10.hana.ondemand.com',
+    initial: defaults.api || lastApi || 'https://api.cf.eu10.hana.ondemand.com',
     validate: required('API endpoint required'),
   });
 
@@ -102,7 +102,7 @@ async function askCfBasics(defaults = {}, globalDefaults = null) {
   return answers;
 }
 
-async function askBtpProfile(defaults = {}, globalDefaults = null) {
+async function askBtpProfile(defaults = {}, globalDefaults = null, lastUrl = '') {
   const hasGlobal = !!(globalDefaults && globalDefaults.username && globalDefaults.password);
   const profileHasOwn = !!(defaults.username && defaults.password);
   const list = [];
@@ -112,7 +112,7 @@ async function askBtpProfile(defaults = {}, globalDefaults = null) {
       type: 'text',
       name: 'url',
       message: 'BTP CLI URL',
-      initial: defaults.url || 'https://cli.btp.cloud.sap',
+      initial: defaults.url || lastUrl || 'https://cli.btp.cloud.sap',
       validate: required('URL required'),
     },
     {
