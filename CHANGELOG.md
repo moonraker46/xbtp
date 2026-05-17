@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
-## 1.1.0 - 2026-05-17
+## 1.0.2 - 2026-05-17
 
 ### Added
 - `xbtp export [file]` — write all profiles + defaults + lastUsed to a JSON file (chmod 0600) or STDOUT. Plain-text passwords, intended for backups and migration.

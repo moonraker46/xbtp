@@ -1,6 +1,6 @@
 {
   "name": "@moonraker46/xbtp",
-  "version": "1.1.0",
+  "version": "1.0.2",
   "description": "Secure CLI for managing multiple SAP CLI credentials (cf, btp). Encrypted profile store (AES-256-GCM + macOS Keychain), on-the-fly org/space discovery, PTY-based login.",
   "keywords": [
     "sap",
